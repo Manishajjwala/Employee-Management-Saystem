@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- For logout icon -->
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Navbar */
+        .navbar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .navbar .logout {
+            font-size: 24px;
+            color: #333;
+            text-decoration: none;
+            padding: 10px;
+            transition: color 0.3s ease;
+        }
+
+        .navbar .logout:hover {
+            color: #ff5c8d;
+        }
+
+        /* Dashboard Container */
+        .dashboard-container {
+            width: 80%;
+            margin: 100px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Heading */
+        .dashboard-heading {
+            text-align: center;
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* Box for Employee List */
+        .box {
+            margin-bottom: 30px;
+        }
+
+        .box-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        /* Table Styling */
+        .employee-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .employee-table th,
+        .employee-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .employee-table th {
+            background-color: #333;
+            color: #fff;
+        }
+
+        .employee-table td {
+            background-color: #f9f9f9;
+        }
+
+        /* Add Employee Button */
+        .add-btn {
+            display: inline-block;
+            margin: 20px auto;
+            padding: 15px 30px;
+            background-color: #333;
+            color: #fff;
+            text-decoration: none;
+            font-size: 18px;
+            text-align: center;
+            border-radius: 5px;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+        .add-btn:hover {
+            background-color: #ff5c8d;
+            transform: scale(1.05);
+        }
+
+        /* Edit & Delete Button Styles */
+        .edit-btn, .delete-btn {
+            color: #ff5c8d;
+            text-decoration: none;
+            padding: 5px;
+            border-radius: 3px;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .edit-btn:hover, .delete-btn:hover {
+            color: #fff;
+            transform: scale(1.2);
+            background-color: #ff5c8d;
+        }
+
+        /* Hover effect on table rows */
+        .employee-table tr:hover {
+            background-color: #f0f0f0;
+            transform: scale(1.02);
+            transition: transform 0.2s ease, background-color 0.3s ease;
+        }
+
+        /* Popup effect for Edit/Delete */
+        .popup {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .popup.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .popup button {
+            padding: 10px 20px;
+            background-color: #ff5c8d;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .popup button:hover {
+            background-color: #ff2a68;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar with Logout Icon -->
+    <div class="navbar">
+        <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i></a>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Admin Dashboard Heading -->
+        <h1 class="dashboard-heading">Admin Dashboard</h1>
+
+        <!-- List of Employees Section -->
+        <div class="box">
+            <h2 class="box-title">List of Employees</h2>
+            <table class="employee-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Position</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employee in employees %}
+                    <tr>
+                        <td>{{ employee.name }}</td>
+                        <td>{{ employee.email }}</td>
+                        <td>{{ employee.position }}</td>
+                        <td>
+                            <a href="/update/{{ employee.id }}" class="edit-btn" onclick="showPopup('Edit', '{{ employee.id }}')">Edit</a>
+                            <a href="/delete/{{ employee.id }}" class="delete-btn" onclick="showPopup('Delete', '{{ employee.id }}')">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Add Employee Button -->
+        <a href="/add" class="add-btn">Add Employee</a>
+    </div>
+
+    <!-- Popup for confirmation -->
+    <div id="popup" class="popup">
+        <p id="popup-message">Are you sure you want to proceed?</p>
+        <button onclick="closePopup()">Close</button>
+    </div>
+
+    <script>
+        function showPopup(action, employeeId) {
+            const popupMessage = document.getElementById('popup-message');
+            popupMessage.textContent = `Are you sure you want to ${action.toLowerCase()} this employee?`;
+            const popup = document.getElementById('popup');
+            popup.classList.add('show');
+        }
+
+        function closePopup() {
+            const popup = document.getElementById('popup');
+            popup.classList.remove('show');
+        }
+    </script>
+</body>
+</html>
